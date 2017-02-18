@@ -15,23 +15,30 @@
  * limitations under the License.
  */
 
-import sbt._
-import Keys._
+package org.apache.predictionio.data.storage.elasticsearch5
 
-object PIOBuild extends Build {
-  val elasticsearch5Version = SettingKey[String](
-    "elasticsearch5-version",
-    "The version of Elasticsearch 5.x used for building.")
-  val elasticsearchVersion = SettingKey[String](
-    "elasticsearch-version",
-    "The version of Elasticsearch 1.x used for building.")
-  val json4sVersion = SettingKey[String](
-    "json4s-version",
-    "The version of JSON4S used for building.")
-  val sparkVersion = SettingKey[String](
-    "spark-version",
-    "The version of Apache Spark used for building.")
-  val childrenPomExtra = SettingKey[scala.xml.NodeSeq](
-    "children-pom-extra",
-    "Extra POM data for children projects.")
+import org.apache.http.HttpHost
+import org.apache.predictionio.data.storage.BaseStorageClient
+import org.apache.predictionio.data.storage.StorageClientConfig
+import org.apache.predictionio.data.storage.StorageClientException
+import org.elasticsearch.client.RestClient
+
+import grizzled.slf4j.Logging
+
+case class ESClient(hosts: Seq[HttpHost]) {
+  def open(): RestClient = {
+    try {
+      RestClient.builder(hosts: _*).build()
+    } catch {
+      case e: Throwable =>
+        throw new StorageClientException(e.getMessage, e)
+    }
+  }
+}
+
+class StorageClient(val config: StorageClientConfig) extends BaseStorageClient
+    with Logging {
+  override val prefix = "ES"
+
+  val client = ESClient(ESUtils.getHttpHosts(config))
 }
