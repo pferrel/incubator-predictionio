@@ -15,40 +15,17 @@
 # limitations under the License.
 #
 
-from ubuntu
+FROM predictionio/pio
 
 ENV SPARK_VERSION 1.4.0
 #ENV ELASTICSEARCH_VERSION 1.4.4
 ENV ELASTICSEARCH_VERSION 5.1.2
 ENV HBASE_VERSION 1.0.0
 
-RUN echo "== Updating system =="
-RUN apt-get update -y
-RUN echo "== Downloading packages =="
-RUN apt-get install -y \
-    wget curl \
-    python-pip \
-    python3-pip \
-    postgresql postgresql-contrib \
-    openjdk-8-jdk \
-    openssh-client openssh-server \
-    git
-
-RUN pip install predictionio
-RUN pip3 install --upgrade pip
-RUN pip3 install xmlrunner
-RUN pip3 install --upgrade requests
-RUN pip3 install --upgrade urllib3
-
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
-
-RUN echo "== Installing Spark =="
-RUN mkdir vendors
-RUN wget http://d3kbcqa49mib13.cloudfront.net/spark-${SPARK_VERSION}-bin-hadoop2.6.tgz
-RUN tar zxvfC spark-${SPARK_VERSION}-bin-hadoop2.6.tgz /vendors
-RUN rm spark-${SPARK_VERSION}-bin-hadoop2.6.tgz
+ADD docker-files/spark-${SPARK_VERSION}-bin-hadoop2.6.tgz /vendors
 ENV SPARK_HOME /vendors/spark-${SPARK_VERSION}-bin-hadoop2.6
 
+<<<<<<< HEAD
 RUN echo "== Installing Elasticsearch =="
 #RUN wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-${ELASTICSEARCH_VERSION}.tar.gz
 RUN wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ELASTICSEARCH_VERSION}.tar.gz
@@ -72,10 +49,15 @@ ENV PATH ${PIO_HOME}/bin/:${PATH}
 ENV HOST_PIO_HOME /pio_host
 
 RUN echo "== Setting configs =="
+=======
+COPY docker-files/postgresql-9.4-1204.jdbc41.jar /drivers
+>>>>>>> 09504bdb0ca14657e9aa9a39af27632786ab112a
 COPY docker-files/init.sh init.sh
-COPY docker-files/env-conf/spark-env.sh ${SPARK_HOME}/conf/spark-env.sh
-COPY docker-files/env-conf/hbase-site.xml ${HBASE_HOME}/conf/hbase-site.xml
+COPY docker-files/env-conf/hbase-site.xml ${PIO_HOME}/conf/hbase-site.xml
 COPY docker-files/env-conf/pio-env.sh /pio-env.sh
+COPY docker-files/wait-for-postgres.sh /wait-for-postgres.sh
+COPY docker-files/pgpass /root/.pgpass
+RUN chmod 600 /root/.pgpass
 
 # Default repositories setup
 ENV PIO_STORAGE_REPOSITORIES_METADATA_SOURCE PGSQL
@@ -90,20 +72,6 @@ ENV JVM_OPTS '-Dfile.encoding=UTF8 -Xms2048M -Xmx2048M -Xss8M -XX:MaxPermSize=51
 EXPOSE 8000
 # eventserver
 EXPOSE 7070
-# spark master UI
-EXPOSE 8080
-# spark worker UI
-EXPOSE 8081
-# spark context UI
-EXPOSE 4040
-# HMaster
-EXPOSE 60000
-# HMaster Info Web UI
-EXPOSE 60010
-# Region Server
-Expose 60020
-# Region Server Http
-EXPOSE 60030
 
 ENTRYPOINT ["/init.sh"]
 CMD 'bash'

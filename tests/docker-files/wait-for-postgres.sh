@@ -1,5 +1,5 @@
 #!/bin/bash
-#
+
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,34 +14,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-USAGE=$"Usage: run_docker <meta> <event> <model> <command>
-  Where:
-    meta         = [PGSQL,ELASTICSEARCH,ELASTICSEARCH1]
-    event        = [PGSQL,HBASE]
-    model        = [PGSQL,LOCALFS,HDFS]
-    command      = command to run in the container"
+set -e
 
-if ! [[ "$1" =~ ^(PGSQL|ELASTICSEARCH|ELASTICSEARCH1)$ ]]; then
-  echo "$USAGE"
-  exit 1
-fi
+host="$1"
+shift
+cmd="$@"
 
-if ! [[ "$2" =~ ^(PGSQL|HBASE|ELASTICSEARCH)$ ]]; then
-  echo "$USAGE"
-  exit 1
-fi
+until psql -h "$host" -U "pio" -c '\l'; do
+  >&2 echo "Postgres is unavailable - sleeping"
+  sleep 1
+done
 
-if ! [[ "$3" =~ ^(PGSQL|LOCALFS|HDFS)$ ]]; then
-  echo "$USAGE"
-  exit 1
-fi
-
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-docker-compose -f $DIR/docker-compose.yml run \
-  -e PIO_STORAGE_REPOSITORIES_METADATA_SOURCE=$1 \
-  -e PIO_STORAGE_REPOSITORIES_EVENTDATA_SOURCE=$2 \
-  -e PIO_STORAGE_REPOSITORIES_MODELDATA_SOURCE=$3 \
-  pio-testing $4
+>&2 echo "Postgres is up - executing command"
+exec $cmd

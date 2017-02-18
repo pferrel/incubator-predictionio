@@ -46,7 +46,7 @@ libraryDependencies ++= Seq(
   "org.elasticsearch.client" % "rest"           % elasticsearch5Version.value,
   "org.elasticsearch"        % "elasticsearch"  % elasticsearchVersion.value,
   "org.elasticsearch"       %% "elasticsearch-spark-13" % elasticsearch5Version.value % "provided",
-  "org.elasticsearch"        % "elasticsearch-hadoop-mr" % elasticsearch5Version.value,
+  "org.elasticsearch"        % "elasticsearch-hadoop-mr" % elasticsearch5Version.value % "provided",
   "org.json4s"              %% "json4s-native"  % json4sVersion.value,
   "org.json4s"              %% "json4s-ext"     % json4sVersion.value,
   "org.postgresql"           % "postgresql"     % "9.4-1204-jdbc41",
